@@ -21,6 +21,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import {MatInputModule} from '@angular/material/input';
 import { ClientworklistComponent } from './clientworklist/clientworklist.component';
+import { WorklistselectorComponent } from './worklistselector/worklistselector.component';
 import { TestComponent } from './test/test.component';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCheckboxModule} from '@angular/material/checkbox';
@@ -33,7 +34,7 @@ export function HttpLoaderFactory(http: HttpClient) {
 }
 
 @NgModule({
-  declarations: [AppComponent, TestComponent, ClientworklistComponent],
+  declarations: [AppComponent, TestComponent, ClientworklistComponent, WorklistselectorComponent],
   imports: [
     BrowserModule,
     FormsModule,

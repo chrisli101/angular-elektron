@@ -7,7 +7,7 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./test.component.scss']
 })
 export class TestComponent implements OnInit {
-  selected = 'option2';
+  selected = 'Rechnungen';
  
   constructor() { }
 
