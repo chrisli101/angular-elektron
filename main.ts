@@ -2,6 +2,79 @@ import { app, BrowserWindow, screen } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
 
+var fs = require('fs');
+
+var contents = fs.readFileSync('DATA', 'utf8');
+console.log(contents);
+
+var edge = require('electron-edge-js');
+
+
+// var clrMethod = edge.func('./../stringUtility/bin/Debug/netstandard2.0/stringUtility.dll');
+
+// dotNetFunction(function (error, result) { if (error) throw error; console.log(result) });
+
+var clrMethod = edge.func({
+    assemblyFile: './../DotNetCoreExample-ClassLibrary/stringUtility/bin/Debug/netstandard2.0/stringUtility.dll',
+    typeName: 'StringUtility.StringLibrary',
+    methodName: 'test' // This must be Func<object,Task<object>>
+});
+
+clrMethod( 'test', function(error,result) {
+  console.log(result);
+  var test = result;
+})
+const {ipcMain} = require('electron');
+var notifier = require('node-notifier');
+//
+//Other regular electron main code
+//
+// Attach listener in the main process with the given ID
+ipcMain.on('request-mainprocess-action', (event, arg) => {
+    notifier
+    .notify({title: 'Notification', message: 'initialized', icon:`${__dirname}\\assets\\image.png`,  wait: true }, function(err, data) {
+      console.log('error: ' + err, 'data: ' +  data);
+    })
+});
+
+ipcMain.on('test-action-click', (event, arg) => {
+  clrMethod('test', function(error,result) {
+    notifier
+    .notify({title: 'Notification', message: 'coming from c# lib: ' + result, icon:`${__dirname}\\assets\\image.png`,  wait: true }, function(err, data) {
+      console.log('error: ' + err, 'data: ' +  data);
+    })
+  })
+ 
+});
+
+ipcMain.on('test-action', (event, arg) => {
+notifier
+    .notify({title: 'Notification', message: 'flexible content from file: ' + fs.readFileSync('DATA', 'utf8'), icon:`${__dirname}\\assets\\image.png`,  wait: true }, function(err, data) {
+      console.log('error: ' + err, 'data: ' +  data);
+  
+  })
+ 
+});
+
+// ipcMain.on('test-action', (event, arg) => {
+//   notifier
+//   .notify({title: 'Notification', message: 'clicked', icon:`${__dirname}\\assets\\image.png`,  wait: true }, function(err, data) {
+//     console.log('error: ' + err, 'data: ' +  data);
+//   })
+// });
+
+ipcMain.emit('message');
+//     assemblyFile: './../stringUtility/bin/Debug/netstandard2.0/stringUtility.dll',
+//     typeName: 'StringUtility.StringLibrary',
+//     methodName: 'StartMethode'
+// });
+
+// halloCsharp({}, function(error,result) {
+//     console.log(result)
+// })
+
+
+
 let win, serve;
 const args = process.argv.slice(1);
 serve = args.some(val => val === '--serve');
@@ -70,6 +143,8 @@ try {
     // dock icon is clicked and there are no other windows open.
     if (win === null) {
       createWindow();
+      var eNotify = require('electron-notify');
+eNotify.notify({ title: 'Notification title', text: 'Some text' });
     }
   });
 

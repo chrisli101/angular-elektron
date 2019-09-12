@@ -13,7 +13,7 @@ import { AppRoutingModule } from './app-routing.module';
 // NG Translate
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-
+import { PushNotificationsModule } from 'ng-push';
 // import { HomeModule } from './home/home.module';
 
 import { AppComponent } from './app.component';
@@ -26,7 +26,7 @@ import { TestComponent } from './test/test.component';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import  {EsignMaterialModule} from './../material-module';
-
+import { ElectronService } from 'ngx-electron';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -40,7 +40,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     FormsModule,
     HttpClientModule,
     CoreModule,
-    
+    PushNotificationsModule,
     // SharedModule,
     ReactiveFormsModule,
     // HomeModule,
@@ -58,7 +58,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     EsignMaterialModule
   ],
   exports: [MatButtonModule, MatCheckboxModule],
-  providers: [],
+  providers: [ElectronService],
   bootstrap: [AppComponent],
   schemas: [ CUSTOM_ELEMENTS_SCHEMA ]
 })
