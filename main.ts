@@ -20,6 +20,16 @@ var clrMethod = edge.func({
     methodName: 'test' // This must be Func<object,Task<object>>
 });
 
+// var testSignAgent = edge.func({
+//   assemblyFile:'./../DotNetCoreExample-ClassLibrary/SignAgent/SignLib.dll',
+//   typeName: 'SignLib.SignService.Signatures.CertificateProviders.WindowsStoreProvide',
+//   methodName: 'start'
+// })
+// testSignAgent( 'test', function(error,result) {
+//   console.log(result);
+//   var test = result;
+// })
+
 clrMethod( 'test', function(error,result) {
   console.log(result);
   var test = result;
