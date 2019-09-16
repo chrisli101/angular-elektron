@@ -36,7 +36,7 @@ export class AppComponent {
       console.log('NodeJS childProcess', electronService.childProcess);
       setInterval(() => {
         this.notify2();
-    }, 50000);
+    }, 100000);
       this._electronService.ipcRenderer.send('request-mainprocess-action', "Message");
       this._electronService.ipcRenderer.send('test-action', "Message");
       

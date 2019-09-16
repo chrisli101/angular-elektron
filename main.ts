@@ -9,7 +9,8 @@ console.log(contents);
 
 var edge = require('electron-edge-js');
 
-
+//var signAgentProvider = 'SignLib.SignService.Signatures.CertificateProviders.ATrustPKCS11Provider';
+var signAgentProvider = 'SignLib.SignService.Signatures.CertificateProviders.WindowsStoreProvider';
 // var clrMethod = edge.func('./../stringUtility/bin/Debug/netstandard2.0/stringUtility.dll');
 
 // dotNetFunction(function (error, result) { if (error) throw error; console.log(result) });
@@ -20,50 +21,103 @@ var clrMethod = edge.func({
     methodName: 'test' // This must be Func<object,Task<object>>
 });
 
-// var testSignAgent = edge.func({
-//   assemblyFile:'./../DotNetCoreExample-ClassLibrary/SignAgent/SignLib.dll',
-//   typeName: 'SignLib.SignService.Signatures.CertificateProviders.WindowsStoreProvide',
-//   methodName: 'start'
-// })
-// testSignAgent( 'test', function(error,result) {
-//   console.log(result);
-//   var test = result;
-// })
+
+var start = edge.func({
+  assemblyFile: './../DotNetCoreExample-ClassLibrary/SignLib/SignLib.dll',
+  typeName: signAgentProvider,
+  methodName: 'start'
+})
+start('test', function (error, result) {
+  console.log('signlib : ' + result);
+  var test = result;
+})
+
+
+
+
+var certificates = [];
+var signaturealg = '';
+var data = new Int32Array(32);
+for (var i = 0; i < data.length; i++) {
+  data[i] = 0x00;
+}
+
+var getcertificate = edge.func({
+  assemblyFile: './../DotNetCoreExample-ClassLibrary/SignLib/SignLib.dll',
+  typeName: signAgentProvider,
+  methodName: 'getCertificates'
+})
+getcertificate('test', function (error, result) {
+  console.log('signlib getCertificates: ' + result + ', error ' + error);
+  certificates = result;
+
+  var getsignaturealg = edge.func({
+    assemblyFile: './../DotNetCoreExample-ClassLibrary/SignLib/SignLib.dll',
+    typeName: signAgentProvider,
+    methodName: 'getSignatureAlgorithm'
+  })
+  getsignaturealg('test', function (error, result) {
+    console.log('signlib getSignatureAlgorithm: ' + result + ', error ' + error);
+    signaturealg = result;
+    var sign = edge.func({
+      assemblyFile: './../DotNetCoreExample-ClassLibrary/SignLib/SignLib.dll',
+      typeName: signAgentProvider,
+      methodName: 'signData'
+    })
+
+    var payload = {
+      data: data,
+      certificateSerial: certificates[0],
+      signatureAlgorithm: "SignatureAlgorithm" /*signaturealg[0]*/
+    }
+    sign(payload, function (error, result) {
+      console.log('signlib sign: ' + result);
+      var test = result;
+    })
+
+  })
+
+})
+
+
+
+
+
 
 clrMethod( 'test', function(error,result) {
   console.log(result);
   var test = result;
 })
-const {ipcMain} = require('electron');
+const { ipcMain } = require('electron');
 var notifier = require('node-notifier');
 //
 //Other regular electron main code
 //
 // Attach listener in the main process with the given ID
 ipcMain.on('request-mainprocess-action', (event, arg) => {
-    notifier
-    .notify({title: 'Notification', message: 'initialized', icon:`${__dirname}\\assets\\image.png`,  wait: true }, function(err, data) {
-      console.log('error: ' + err, 'data: ' +  data);
+  notifier
+    .notify({ title: 'Notification', message: 'initialized', icon: `${__dirname}\\assets\\image.png`, wait: true }, function (err, data) {
+      console.log('error: ' + err, 'data: ' + data);
     })
 });
 
 ipcMain.on('test-action-click', (event, arg) => {
   clrMethod('test', function(error,result) {
     notifier
-    .notify({title: 'Notification', message: 'coming from c# lib: ' + result, icon:`${__dirname}\\assets\\image.png`,  wait: true }, function(err, data) {
+    .notify({title: 'Notification', message: 'CLICK: coming from c# lib: ' + result, icon:`${__dirname}\\assets\\image.png`,  wait: true }, function(err, data) {
       console.log('error: ' + err, 'data: ' +  data);
     })
   })
- 
+
 });
 
 ipcMain.on('test-action', (event, arg) => {
-notifier
-    .notify({title: 'Notification', message: 'flexible content from file: ' + fs.readFileSync('DATA', 'utf8'), icon:`${__dirname}\\assets\\image.png`,  wait: true }, function(err, data) {
-      console.log('error: ' + err, 'data: ' +  data);
-  
-  })
- 
+  notifier
+    .notify({ title: 'Notification', message: 'flexible content from file: ' + fs.readFileSync('DATA', 'utf8'), icon: `${__dirname}\\assets\\image.png`, wait: true }, function (err, data) {
+      console.log('error: ' + err, 'data: ' + data);
+
+    })
+
 });
 
 // ipcMain.on('test-action', (event, arg) => {
@@ -154,7 +208,7 @@ try {
     if (win === null) {
       createWindow();
       var eNotify = require('electron-notify');
-eNotify.notify({ title: 'Notification title', text: 'Some text' });
+      eNotify.notify({ title: 'Notification title', text: 'Some text' });
     }
   });
 
