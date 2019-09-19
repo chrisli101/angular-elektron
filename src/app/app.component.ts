@@ -18,7 +18,7 @@ import { NotifyService } from './notify.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  
+  testEvent : string;
   constructor(
     public electronService: ElectronService2,
     private translate: TranslateService,
@@ -37,8 +37,20 @@ export class AppComponent {
       setInterval(() => {
         this.notify2();
     }, 100000);
+    this._electronService.ipcRenderer.on('message2', (event, res) => {
+      alert('message2 ' + res);
+    }
+        //  args.returnValue = 'heyy from angular';
+    );
+ 
+   
       this._electronService.ipcRenderer.send('request-mainprocess-action', "Message");
       this._electronService.ipcRenderer.send('test-action', "Message");
+      // this._electronService.ipcRenderer.sendSync('test-action', "Message");
+      console.log(this._electronService.ipcRenderer.sendSync('message', 'from angular')); // prints "pong"
+alert(this._electronService.ipcRenderer.sendSync('message', 'from angular'));
+     this.testEvent = this._electronService.ipcRenderer.sendSync('message', 'from angular');
+     console.log('XXXXXXXXXXX ' + this.testEvent)
       
     } else {
       console.log('Mode web');
@@ -46,10 +58,7 @@ export class AppComponent {
   }
   ngOnInit(): void {
    
-    this._electronService.ipcRenderer.on('message', (event, messages) => { alert(messages);
-    })
-
-
+    
 
     //renderer.js
 // ipc.on('fromMain', (event, messages) => {

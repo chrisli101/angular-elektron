@@ -2,24 +2,52 @@ import { app, BrowserWindow, screen } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
 
+var edge = require('electron-edge-js');
 var fs = require('fs');
+const CryptoJS = require('crypto-js');
 
 var contents = fs.readFileSync('DATA', 'utf8');
 console.log(contents);
 
-var edge = require('electron-edge-js');
+
 
 //var signAgentProvider = 'SignLib.SignService.Signatures.CertificateProviders.ATrustPKCS11Provider';
 var signAgentProvider = 'SignLib.SignService.Signatures.CertificateProviders.WindowsStoreProvider';
 // var clrMethod = edge.func('./../stringUtility/bin/Debug/netstandard2.0/stringUtility.dll');
 
 // dotNetFunction(function (error, result) { if (error) throw error; console.log(result) });
+var test = 'initialize';
+var clrMethod;
 
-var clrMethod = edge.func({
-    assemblyFile: './../DotNetCoreExample-ClassLibrary/stringUtility/bin/Debug/netstandard2.0/stringUtility.dll',
-    typeName: 'StringUtility.StringLibrary',
-    methodName: 'test' // This must be Func<object,Task<object>>
+// var dotNetFunction = edge.func('./../DotNetCoreExample-ClassLibrary/stringUtility/bin/Debug/netstandard2.0/stringUtility.dll');
+// dotNetFunction('test', function(error, result) { console.log('in dotnetf ' + result)})
+
+this.clrMethod = edge.func({
+  assemblyFile: './../DotNetCoreExample-ClassLibrary/stringUtility/bin/Debug/netstandard2.0/stringUtility.dll',
+  typeName: 'StringUtility.StartUp',
+  methodName: 'test' // This must be Func<object,Task<object>>
 });
+this.clrMethod('test', function (error, result) {
+  console.log(result);
+   test = result;
+}, false)
+
+var clrMethod2;
+
+
+
+this.clrMethod2 = edge.func({
+  assemblyFile: './../DotNetCoreExample-ClassLibrary/stringUtility/bin/Debug/netstandard2.0/stringUtility.dll',
+  typeName: 'StringUtility.StartUp',
+  methodName: 'test2' // This must be Func<object,Task<object>>
+});
+this.clrMethod2(test, function (error, result) {
+  console.log(result);
+  var test2 = result;
+},false)
+
+
+
 
 
 var start = edge.func({
@@ -37,10 +65,28 @@ start('test', function (error, result) {
 
 var certificates = [];
 var signaturealg = '';
-var data = new Int32Array(32);
-for (var i = 0; i < data.length; i++) {
-  data[i] = 0x00;
-}
+// var data = new Int32Array(32);
+// for (var i = 0; i < data.length; i++) {
+//   data[i] = 0x10;
+// }
+
+// data = "72,0,101,0,108,0,108,0,111,0";
+// var myBuffer = [];
+// var str = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+// var buffer = new Buffer(str, 'utf16le');
+// for (var i = 0; i < buffer.length; i++) {
+//     myBuffer.push(buffer[i]);
+// }
+
+
+
+// console.log('BUFFER : XXXX ' + myBuffer);
+
+
+let hash   = CryptoJS.SHA256('hello world');
+let buffer = Buffer.from(hash.toString(CryptoJS.enc.Hex), 'hex');
+let array  = new Int32Array(buffer);
+console.log('bytearray: ' + array.length);
 
 var getcertificate = edge.func({
   assemblyFile: './../DotNetCoreExample-ClassLibrary/SignLib/SignLib.dll',
@@ -64,11 +110,12 @@ getcertificate('test', function (error, result) {
       typeName: signAgentProvider,
       methodName: 'signData'
     })
-
+    // console.log('data: ' + data + '\ncertificate: ' + certificates[0])
+    // console.log('data: ' + myBuffer + ' certificateSerial: ' + certificates[0] + 'signaturealg: ' + signaturealg + 'typeof certificate ' + typeof(certificates) + ' typeof ')
     var payload = {
-      data: data,
+      data: array,
       certificateSerial: certificates[0],
-      signatureAlgorithm: "SignatureAlgorithm" /*signaturealg[0]*/
+      signatureAlgorithm: signaturealg[0]//"SignatureAlgorithm" /*signaturealg[0]*/
     }
     sign(payload, function (error, result) {
       console.log('signlib sign: ' + result);
@@ -81,13 +128,19 @@ getcertificate('test', function (error, result) {
 
 
 
+var createCounter = edge.func(function () {
+  /*async (input) =>
+  {
+      var k = (int)input; 
+      return (Func<object,Task<object>>)(async (i) => { return ++k; });}*/
+});
+
+var counter = createCounter(12, true); // create counter with 12 as initial state
+console.log(' XXXXXXXXXXXXXXXXXXXX' + counter(null, true)); // prints 13
+console.log(counter(null, true)); // prints 14
 
 
 
-clrMethod( 'test', function(error,result) {
-  console.log(result);
-  var test = result;
-})
 const { ipcMain } = require('electron');
 var notifier = require('node-notifier');
 //
@@ -102,18 +155,18 @@ ipcMain.on('request-mainprocess-action', (event, arg) => {
 });
 
 ipcMain.on('test-action-click', (event, arg) => {
-  clrMethod('test', function(error,result) {
+  this.clrMethod('test', function (error, result) {
     notifier
-    .notify({title: 'Notification', message: 'CLICK: coming from c# lib: ' + result, icon:`${__dirname}\\assets\\image.png`,  wait: true }, function(err, data) {
-      console.log('error: ' + err, 'data: ' +  data);
-    })
+      .notify({ title: 'Notification', message: 'CLICK: coming from c# lib: ' + result,  wait: true }, function (err, data) {
+        console.log('error: ' + err, 'data: ' + data);
+      })
   })
 
 });
 
 ipcMain.on('test-action', (event, arg) => {
   notifier
-    .notify({ title: 'Notification', message: 'flexible content from file: ' + fs.readFileSync('DATA', 'utf8'), icon: `${__dirname}\\assets\\image.png`, wait: true }, function (err, data) {
+    .notify({ title: 'Notification', message: 'flexible content from file: ' + fs.readFileSync('DATA', 'utf8'),  wait: true }, function (err, data) {
       console.log('error: ' + err, 'data: ' + data);
 
     })
@@ -122,17 +175,29 @@ ipcMain.on('test-action', (event, arg) => {
 
 // ipcMain.on('test-action', (event, arg) => {
 //   notifier
-//   .notify({title: 'Notification', message: 'clicked', icon:`${__dirname}\\assets\\image.png`,  wait: true }, function(err, data) {
+//   .notify({title: 'Notification', message: 'clicked',   wait: true }, function(err, data) {
 //     console.log('error: ' + err, 'data: ' +  data);
 //   })
 // });
 
-ipcMain.emit('message');
+// ipcMain.emit('message');
 //     assemblyFile: './../stringUtility/bin/Debug/netstandard2.0/stringUtility.dll',
 //     typeName: 'StringUtility.StringLibrary',
 //     methodName: 'StartMethode'
 // });
 
+ipcMain.on('message2', function(args, event) {
+  console.log('message2 XXXXXXXXXXXXXXXXXX' + args, event)
+  args.returnValue = 'hey from electron'
+});
+
+ipcMain.on('message',function(event, arg) {
+  console.log(arg);  // prints "ping"
+ 
+    console.log(event);
+  event.returnValue = 'from electron';
+  
+});
 // halloCsharp({}, function(error,result) {
 //     console.log(result)
 // })
@@ -176,6 +241,9 @@ function createWindow() {
     win.webContents.openDevTools();
   }
 
+  const { dialog } = require('electron')
+console.log('YYYYYYYYYYYYYYY ' + dialog.showOpenDialog({ properties: ['openFile', 'openDirectory', 'multiSelections'] }))
+
   // Emitted when the window is closed.
   win.on('closed', () => {
     // Dereference the window object, usually you would store window
@@ -185,6 +253,20 @@ function createWindow() {
   });
 
 }
+
+
+
+// const { dialog } = require('electron').remote
+// console.log(dialog)
+// dialog.showOpenDialog(, {
+//   properties: ['openFile', 'openDirectory']
+// }).then(result => {
+//   console.log(result.canceled)
+//   console.log(result.filePaths)
+// }).catch(err => {
+//   console.log(err)
+// })
+
 
 try {
 
