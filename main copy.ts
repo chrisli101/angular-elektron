@@ -28,7 +28,7 @@ this.clrMethod = edge.func({
   methodName: 'test' // This must be Func<object,Task<object>>
 });
 this.clrMethod('test', function (error, result) {
-  // console.log(result);
+  console.log(result);
   test = result;
 }, false)
 
@@ -42,7 +42,7 @@ this.clrMethod2 = edge.func({
   methodName: 'test2' // This must be Func<object,Task<object>>
 });
 this.clrMethod2(test, function (error, result) {
-  // console.log(result);
+  console.log(result);
   var test2 = result;
 }, false)
 
@@ -86,61 +86,55 @@ var signaturealg = '';
 let hash = CryptoJS.SHA256('hello world');
 let buffer = Buffer.from(hash.toString(CryptoJS.enc.Hex), 'hex');
 let array = new Int32Array(buffer);
-// console.log('bytearray: ' + array.length);
+console.log('bytearray: ' + array.length);
 
 var getcertificate = edge.func({
   assemblyFile: './../../WebProjects/test/DotNetCoreExample-ClassLibrary/SignLib/SignLib.dll',
   typeName: signAgentProvider,
   methodName: 'getCertificates'
 })
-// getcertificate('test', function (error, result) {
-//   console.log('signlib getCertificates: ' + result + ', error ' + error);
-//   certificates = result;
+getcertificate('test', function (error, result) {
+  console.log('signlib getCertificates: ' + result + ', error ' + error);
+  certificates = result;
 
-//   var getsignaturealg = edge.func({
-//     assemblyFile: './../../WebProjects/test/DotNetCoreExample-ClassLibrary/SignLib/SignLib.dll',
-//     typeName: signAgentProvider,
-//     methodName: 'getSignatureAlgorithm'
-//   })
-//   getsignaturealg('test', function (error, result) {
-//     console.log('signlib getSignatureAlgorithm: ' + result + ', error ' + error);
-//     signaturealg = result;
-//     var sign = edge.func({
-//       assemblyFile: './../../WebProjects/test/DotNetCoreExample-ClassLibrary/SignLib/SignLib.dll',
-//       typeName: signAgentProvider,
-//       methodName: 'signData'
-//     })
-//     // console.log('data: ' + data + '\ncertificate: ' + certificates[0])
-//     // console.log('data: ' + myBuffer + ' certificateSerial: ' + certificates[0] + 'signaturealg: ' + signaturealg + 'typeof certificate ' + typeof(certificates) + ' typeof ')
-//     var payload = {
-//       data: array,
-//       certificateSerial: certificates[0],
-//       signatureAlgorithm: signaturealg[0]//"SignatureAlgorithm" /*signaturealg[0]*/
-//     }
-//     sign(payload, function (error, result) {
-//       console.log('signlib sign: ' + result);
-//       var test = result;
-//     })
+  var getsignaturealg = edge.func({
+    assemblyFile: './../../WebProjects/test/DotNetCoreExample-ClassLibrary/SignLib/SignLib.dll',
+    typeName: signAgentProvider,
+    methodName: 'getSignatureAlgorithm'
+  })
+  getsignaturealg('test', function (error, result) {
+    console.log('signlib getSignatureAlgorithm: ' + result + ', error ' + error);
+    signaturealg = result;
+    var sign = edge.func({
+      assemblyFile: './../../WebProjects/test/DotNetCoreExample-ClassLibrary/SignLib/SignLib.dll',
+      typeName: signAgentProvider,
+      methodName: 'signData'
+    })
+    // console.log('data: ' + data + '\ncertificate: ' + certificates[0])
+    // console.log('data: ' + myBuffer + ' certificateSerial: ' + certificates[0] + 'signaturealg: ' + signaturealg + 'typeof certificate ' + typeof(certificates) + ' typeof ')
+    var payload = {
+      data: array,
+      certificateSerial: certificates[0],
+      signatureAlgorithm: signaturealg[0]//"SignatureAlgorithm" /*signaturealg[0]*/
+    }
+    sign(payload, function (error, result) {
+      console.log('signlib sign: ' + result);
+      var test = result;
+    })
 
-//   })
+  })
 
-// })
-
-
-// var addAndMultiplyBy2 = edge.func(function () {
-//   /*async (dynamic input) => {
-//       var add = (Func<object, Task<object>>)input.add;
-//       var twoNumbers = new { a = (int)input.a, b = (int)input.b };
-//       var addResult = (int)await add(twoNumbers);
-//       return addResult * 2;
-//   }*/
-// });
-
-var addAndMultiplyBy2 = edge.func({
-  assemblyFile: './../../WebProjects/test/DotNetCoreExample-ClassLibrary/stringUtility/bin/Debug/netstandard2.0/stringUtility.dll',
-  typeName: 'StringUtility.StartUp',
-  methodName: 'testCallBack'
 })
+
+
+var addAndMultiplyBy2 = edge.func(function () {
+  /*async (dynamic input) => {
+      var add = (Func<object, Task<object>>)input.add;
+      var twoNumbers = new { a = (int)input.a, b = (int)input.b };
+      var addResult = (int)await add(twoNumbers);
+      return addResult * 2;
+  }*/
+});
 
 var payload = {
   a: 2,
@@ -155,49 +149,6 @@ addAndMultiplyBy2(payload, function (error, result) {
   console.log('callback return: ' + result);
 });
 
-//-----
-
-var registerCallback = edge.func({
-  assemblyFile: './../../WebProjects/test/DotNetCoreExample-ClassLibrary/stringUtility/bin/Debug/netstandard2.0/stringUtility.dll',
-  typeName: 'StringUtility.StartUp',
-  methodName: 'registerCallback'
-})
-
-
-const { ipcMain } = require('electron');
-var notifier = require('node-notifier');
-console.log("Now registering for gui-started notification");
-ipcMain.on('gui-started', (event, arg) => {
-  
-  registerCallback(
-    {
-      csCallback: function (data, callback) {
-        console.log('CSharp callback called back');
-        event.reply('nodeJsNotification','JUHUUUUUUU ' + data.a);
-        callback(null, 1);
-      }
-    },  
-    function (error, result) {
-      if (error) throw error;
-      event.reply('nodeJsNotification','HALLOOOOOOO');
-      // console.log('callback return: ' + result);
-    });
-  
-});
-
-
-// var createListener = edge.func(
-//   {
-//     source: function () {
-//     /*async (input) =>
-//     {
-//         var k = (int)input; 
-//         return (Func<object,Task<object>>)(async (i) => { return ++k; });}*/
-//     },
-//     references: [ './../../WebProjects/test/DotNetCoreExample-ClassLibrary/stringUtility/bin/Debug/netstandard2.0/stringUtility.dll' ]}
-
-// );
-
 var createCounter = edge.func(function () {
   /*async (input) =>
   {
@@ -206,11 +157,13 @@ var createCounter = edge.func(function () {
 });
 
 var counter = createCounter(12, true); // create counter with 12 as initial state
-// console.log(' XXXXXXXXXXXXXXXXXXXX' + counter(null, true)); // prints 13
-// console.log(counter(null, true)); // prints 14
+console.log(' XXXXXXXXXXXXXXXXXXXX' + counter(null, true)); // prints 13
+console.log(counter(null, true)); // prints 14
 
 
 
+const { ipcMain } = require('electron');
+var notifier = require('node-notifier');
 //
 //Other regular electron main code
 //
@@ -218,7 +171,7 @@ var counter = createCounter(12, true); // create counter with 12 as initial stat
 ipcMain.on('request-mainprocess-action', (event, arg) => {
   notifier
     .notify({ title: 'Notification', message: 'initialized', icon: `${__dirname}\\assets\\image.png`, wait: true }, function (err, data) {
-      // console.log('error: ' + err, 'data: ' + data);
+      console.log('error: ' + err, 'data: ' + data);
     })
 });
 
@@ -226,7 +179,7 @@ ipcMain.on('test-action-click', (event, arg) => {
   this.clrMethod('test', function (error, result) {
     notifier
       .notify({ title: 'Notification', message: 'CLICK: coming from c# lib: ' + result, wait: true }, function (err, data) {
-        // console.log('error: ' + err, 'data: ' + data);
+        console.log('error: ' + err, 'data: ' + data);
       })
   })
 
@@ -235,7 +188,7 @@ ipcMain.on('test-action-click', (event, arg) => {
 ipcMain.on('test-action', (event, arg) => {
   notifier
     .notify({ title: 'Notification', message: 'flexible content from file: ' + fs.readFileSync('DATA', 'utf8'), wait: true }, function (err, data) {
-      // console.log('error: ' + err, 'data: ' + data);
+      console.log('error: ' + err, 'data: ' + data);
 
     })
 
@@ -255,14 +208,14 @@ ipcMain.on('test-action', (event, arg) => {
 // });
 
 ipcMain.on('message2', function (args, event) {
-  // console.log('message2 XXXXXXXXXXXXXXXXXX' + args, event)
+  console.log('message2 XXXXXXXXXXXXXXXXXX' + args, event)
   args.returnValue = 'hey from electron'
 });
 
 ipcMain.on('message', function (event, arg) {
-  // console.log(arg);  // prints "ping"
+  console.log(arg);  // prints "ping"
 
-  // console.log(event);
+  console.log(event);
   event.returnValue = 'from electron';
 
 });
@@ -310,7 +263,7 @@ function createWindow() {
   }
 
   const { dialog } = require('electron')
-  // console.log('YYYYYYYYYYYYYYY ' + dialog.showOpenDialog({ properties: ['openFile', 'openDirectory', 'multiSelections'] }))
+  console.log('YYYYYYYYYYYYYYY ' + dialog.showOpenDialog({ properties: ['openFile', 'openDirectory', 'multiSelections'] }))
 
   // Emitted when the window is closed.
   win.on('closed', () => {
